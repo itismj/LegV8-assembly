@@ -1,0 +1,107 @@
+//  x5  - Number of occurrences are stored
+// x20, x21 – registered are used for iteration
+// x0, x1 – Contains the memory location for data1 and data2 respectively
+// Other more registers are used in order to store and load data from memory locations that are in x0 and x1 registers
+
+	
+B	main   // Calling the main subroutine
+main:
+
+	BL	fillArray1	// Subroutine to fill the x0 with data1 nunmbers
+
+	BL	fillArray2	// Subroutie to fill the x1 with  data2 numbers
+
+	BL	check	// Subroutine to check occurances
+
+	BL	end	// Finish the program
+
+fillArray1:
+
+	ADDI	X19, X19, #12	// Loop to fill the addresses stored in x0. Will be incrementing the memory address by one as well as increment  the value of x1 by 2
+
+	MOVZ	X1, #28	// First value of the array
+
+	MOVZ	X0, #0x1000, LSL #16   // Addressing memory location to x0
+
+loop1:	CBZ	x19, fillArray2   // loop1 subroutine where I increment addresses and x1 value. If x19 register value is 0 subroutine calls fillArray2 subroutine
+
+	STURB	X1, [X0] // Storing the value of x1 in x0 where it saves it in memory. It takes a byte out of it
+
+	LDURB	X2, [X0] // Loading a byte from x0  to x2
+
+	ADDI	X0, X0, #1 //incrementing memory location in x0
+
+	LDURB	X2, [X0] // loading  the byte from x0 to x2
+
+	ADDI	X1, X1, #2  // 28+2 = 30 incrementing the value of x1 by two
+
+	SUBI	X19, X19, #1 // decrementing x19 which is number of iterations
+
+	BL	loop1 // Jumps to loop1 again
+
+fillArray2: // filling out the second data set to x1
+
+	ADDI	X20, X20, #4 // Setting iteration number
+
+	MOVZ	X2, #34 // Moving value to x2 register so that I can store it in x1 later
+
+	MOVZ	X1, #0x2000, LSL #16
+
+loop2: // second loop to iterate
+
+	CBZ	x20, check // if x20 is 0 it jumps to check subroutine
+
+	STURB	X2, [X1] // storing a byte from x2 to x1
+
+	LDURB	X3, [X1] // loading that byte  to x3 now
+
+	ADDI	X1, X1, #1 // incrementing memory location in x1
+
+	LDURB	X3, [X1] // loading a byte of the new  memory location
+
+	ADDI	X2, X2, #1 // incrementing x2 value
+
+	SUBI	X20, X20, #1 // decrementing iteration value
+
+	BL	loop2 // jumping back to the head of loop2 subroutine
+
+check: // This check subroutine  checks for the occurrences 
+
+	ADDI	x20, X20, #12 // Iteration number which is number of data I stored
+
+	SUBI	x1, x1, #4 // Going to the head of the x1 where memory locations are stored. I did this so that in my loop3 I can add 4 and go to  the backmost.
+
+	BL	loop3 // jumping to subroutine loop3
+
+loop3:
+	CBZ	x20, end // checking if x20 is zero, if it is zero, it jumps to end which  is end of the program
+
+	SUBI	x0, x0, #1 // decrementing x0 to get access to data in other  addresses
+
+	LDURB	x22, [x0] // Loading a byte to x22 from x0
+
+	ADDI	x21, x21, #4 // Setting the  value of the next loop which  will go through the values  stored in x1
+
+	SUBI	x20, x20, #1 // decrementing the iteration number which  goes through the values in x0
+
+	ADDI	x1, x1, #4 // Going back  the value of x1 so that I can compare it with other values of x0 as well
+loop4:
+	CBZ	x21, loop3 // Will be iterating in loop4 until x21 is zero which will jump to loop3 if zero
+
+	SUBI	x1, x1, #1 // decrementing x1 to gain access to all the addresses in which data1 values are stored
+
+	LDURB	x23, [x1]	//storing a byte from x1 to x23 
+
+	SUB	x24, X23, X22 // subtracting values x23 and x22 in which data1 and data2 values are stored and storing the result in x24 so I can check if they are equal or not. 
+
+	SUBI	x21, x21, #1 // decrementing  the number of iteration of data2
+
+	CBZ	x24, increment // As mentioned above, if x23 and x22 are equal x24 will be equal to zero and this line checks if it is zero or not. If it is zero it jumps to increment subroutine
+	BL	loop4 // Jumps back to loop4 
+
+increment: // I created this subroutine so that I can increment the x5 which shows the number of occurrences 
+
+	ADDI	X5, X5, #1
+	B	loop4 // Jumps back to loop4 subroutine
+
+end: // Finishing the program
